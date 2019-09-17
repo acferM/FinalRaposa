@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.SceneManagement;
 
 public class PlayerBehaviour : MonoBehaviour
 {
@@ -17,7 +18,8 @@ public class PlayerBehaviour : MonoBehaviour
     private float timezinA = 0.2f;
     private float timeA;
     private bool attackCan;
-
+    private bool morto;
+  
     public static int dano = 1;
     public int vida = 6;
     public Text txtVida;
@@ -59,42 +61,45 @@ public class PlayerBehaviour : MonoBehaviour
     [System.Obsolete]
     void Update()
     {
-        // Movimentação
-        movimento = Input.GetAxis("Horizontal");
+        if (!morto)
+        {
+            // Movimentação
+            movimento = Input.GetAxis("Horizontal");
 
-        rb.velocity = new Vector2(movimento * 2, rb.velocity.y);
+            rb.velocity = new Vector2(movimento * 2, rb.velocity.y);
 
-        if (movimento > 0)
-        {
-            GetComponent<SpriteRenderer>().flipX = false;
-            an.SetBool("Andando", true);
-        }
-        else if (movimento < 0)
-        {
-            GetComponent<SpriteRenderer>().flipX = true;
-            an.SetBool("Andando", true);
-        }
-        else
-        {
-            an.SetBool("Andando", false);
-        }
+            if (movimento > 0)
+            {
+                GetComponent<SpriteRenderer>().flipX = false;
+                an.SetBool("Andando", true);
+            }
+            else if (movimento < 0)
+            {
+                GetComponent<SpriteRenderer>().flipX = true;
+                an.SetBool("Andando", true);
+            }
+            else
+            {
+                an.SetBool("Andando", false);
+            }
 
-        // Pulo
-        if (Input.GetKeyDown(KeyCode.UpArrow) && noChão > 0 || Input.GetKeyDown(KeyCode.W) && noChão > 0)
-        {
-            rb.AddForce(new Vector2(0, 200));
-            rb.velocity = new Vector2(rb.velocity.x, 0);
-            noChão--;
-        }
-        else if (Input.GetKeyDown(KeyCode.Z) && movimento > 0)
-        {
-            rb.AddForce(new Vector2(600, 0));
-            an.SetBool("Dasheando", true);
-        }
-        else if (Input.GetKeyDown(KeyCode.Z) && movimento < 0)
-        {
-            rb.AddForce(new Vector2(-600, 0));
-            an.SetBool("Dasheando", true);
+            // Pulo
+            if (Input.GetKeyDown(KeyCode.UpArrow) && noChão > 0 || Input.GetKeyDown(KeyCode.W) && noChão > 0)
+            {
+                rb.AddForce(new Vector2(0, 200));
+                rb.velocity = new Vector2(rb.velocity.x, 0);
+                noChão--;
+            }
+            else if (Input.GetKeyDown(KeyCode.Z) && movimento > 0)
+            {
+                rb.AddForce(new Vector2(600, 0));
+                an.SetBool("Dasheando", true);
+            }
+            else if (Input.GetKeyDown(KeyCode.Z) && movimento < 0)
+            {
+                rb.AddForce(new Vector2(-600, 0));
+                an.SetBool("Dasheando", true);
+            }
         }
 
         // Vida
@@ -166,20 +171,16 @@ public class PlayerBehaviour : MonoBehaviour
 
             timeA = Time.time + timezinA;
 
-            if (movimento > 0)
+            if (!GetComponent<SpriteRenderer>().flipX)
             {
                 Ataque.GetComponent<Transform>().position = new Vector3(Player.GetComponent<Transform>().position.x + 0.408f, Player.GetComponent<Transform>().position.y + 0.044f);
                 Ataque.GetComponent<SpriteRenderer>().flipX = false;
             }
-            else if (movimento < 0)
+            else if (GetComponent<SpriteRenderer>().flipX)
             {
                 Ataque.GetComponent<Transform>().position = new Vector3( Player.GetComponent<Transform>().position.x - 0.408f, Player.GetComponent<Transform>().position.y + 0.044f);
                 Ataque.GetComponent<SpriteRenderer>().flipX = true;
-            }
-            else if (movimento == 0)
-            {
-                Ataque.SetActive(false);
-            }            
+            }           
         }
 
         if (Time.time < timeA)
@@ -200,10 +201,10 @@ public class PlayerBehaviour : MonoBehaviour
         {
             GetComponent<SpriteRenderer>().material.color = Color.black;
             canvas.SetActive(false);
-            rb.velocity = new Vector2(0, 0);
-            movimento = 0;
             GetComponent<SpriteRenderer>().flipY = true;
-            CancelInvoke();
+            morto = true;
+            Invoke("restart", 3f);
+            rb.velocity = new Vector2(0, 0);
         }
     }
 
@@ -231,5 +232,10 @@ public class PlayerBehaviour : MonoBehaviour
     void heal()
     {
         vida++;
+    }
+
+    void restart()
+    {
+        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
     }
 }
