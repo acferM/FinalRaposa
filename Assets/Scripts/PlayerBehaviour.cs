@@ -29,7 +29,9 @@ public class PlayerBehaviour : MonoBehaviour
     public Image barraRage;
     public Text textoBarraRage;
     public static bool rageMode;
-    public GameObject canvas;
+    public GameObject HUD;
+    public Vector3 posicao;
+    public GameObject pause;
 
     private void Awake()
     {
@@ -38,6 +40,8 @@ public class PlayerBehaviour : MonoBehaviour
         barraRage.fillAmount = 0;
 
         Ataque.SetActive(false);
+
+
     }
 
     // Start is called before the first frame update
@@ -200,11 +204,22 @@ public class PlayerBehaviour : MonoBehaviour
         if (vida <= 0)
         {
             GetComponent<SpriteRenderer>().material.color = Color.black;
-            canvas.SetActive(false);
+            HUD.SetActive(false);
             GetComponent<SpriteRenderer>().flipY = true;
             morto = true;
             Invoke("restart", 3f);
             rb.velocity = new Vector2(0, 0);
+        }
+
+        if (Input.GetKeyDown(KeyCode.Escape) && Time.timeScale == 1)
+        {
+            pause.SetActive(true);
+            Time.timeScale = 0;
+        }
+        else if (Input.GetKeyDown(KeyCode.Escape) && Time.timeScale == 0)
+        {
+            pause.SetActive(false);
+            Time.timeScale = 1;
         }
     }
 
@@ -237,5 +252,25 @@ public class PlayerBehaviour : MonoBehaviour
     void restart()
     {
         SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+    }
+
+    public void SaveGame()
+    {
+        PlayerSaveAndLoad.playerSaveGame(this);
+    }
+
+    public void LoadGame()
+    {
+        PlayerGetData data = PlayerSaveAndLoad.playerLoadGame();
+
+        Vector3 posição;
+
+        posição.x = data.posicao[0];
+        posição.y = data.posicao[1];
+        posição.z = data.posicao[2];
+
+        transform.position = posição;
+
+        vida = data.vida;
     }
 }
